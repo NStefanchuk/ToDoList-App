@@ -11,7 +11,18 @@ const Todo = () => {
       ? JSON.parse(localStorage.getItem('todos'))
       : []
   )
+
   const inputRef = useRef()
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key.toLowerCase() === 'n') {
+        inputRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
   const add = () => {
     const inputText = inputRef.current.value.trim()
     if (inputText === '') {
@@ -69,18 +80,29 @@ const Todo = () => {
       </div>
       {/* ---todo list--- */}
       <div>
-        {todoList.map((item, index) => {
-          return (
-            <TodoItems
-              key={index}
-              text={item.text}
-              id={item.id}
-              isComplete={item.isComplete}
-              deleteTodo={deleteTodo}
-              toggle={toggle}
-            />
-          )
-        })}
+        {todoList.length === 0 ? (
+          <p className="text-center text-slate-500 mt-10">
+            there is no tasks — press{' '}
+            <kbd className="px-1 py-0.5 rounded bg-slate-200 text-slate-700">
+              N
+            </kbd>
+            , to add a new task
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {todoList.map((item) => (
+              <li key={item.id}>
+                <TodoItems
+                  text={item.text}
+                  id={item.id}
+                  isComplete={item.isComplete}
+                  deleteTodo={deleteTodo}
+                  toggle={toggle}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   )
