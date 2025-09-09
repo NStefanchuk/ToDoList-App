@@ -1,4 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import SortableItem from './components/SortableItem.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
 
 export default function App() {
@@ -12,29 +25,46 @@ export default function App() {
   })
   const [text, setText] = useState('')
 
-  function persist(next) {
-    setItems(next)
-    localStorage.setItem('todos', JSON.stringify(next))
-  }
+  // сохраняем при каждом изменении
+  useEffect(() => {
+    localStorage.setItem('todos', JSON.stringify(items))
+  }, [items])
 
   function addItem(e) {
     e?.preventDefault()
     const value = text.trim()
     if (!value) return
-    persist([{ id: crypto.randomUUID(), title: value, done: false }, ...items])
+    setItems(prev => [{ id: crypto.randomUUID(), title: value, done: false }, ...prev])
     setText('')
   }
 
   function toggle(id) {
-    persist(items.map((it) => (it.id === id ? { ...it, done: !it.done } : it)))
+    setItems(prev => prev.map(it => (it.id === id ? { ...it, done: !it.done } : it)))
   }
 
-  function remove(id) {
-    persist(items.filter((it) => it.id !== id))
+  function removeItem(id) {
+    setItems(prev => prev.filter(it => it.id !== id))
   }
 
   function clearCompleted() {
-    persist(items.filter((it) => !it.done))
+    setItems(prev => prev.filter(it => !it.done))
+  }
+
+  // --- DND setup ---
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  )
+
+  function handleDragEnd(event) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    setItems(prev => {
+      const oldIndex = prev.findIndex(it => it.id === active.id)
+      const newIndex = prev.findIndex(it => it.id === over.id)
+      if (oldIndex === -1 || newIndex === -1) return prev
+      return arrayMove(prev, oldIndex, newIndex)
+    })
   }
 
   return (
@@ -57,42 +87,63 @@ export default function App() {
           <button className="btn-accent">Add</button>
         </form>
 
-        <section className="space-y-3">
-          {items.length === 0 ? (
-            <div className="card text-center text-muted">
-              No tasks yet. it's time to plan something!
-            </div>
-          ) : (
-            items.map((it) => (
-              <div key={it.id} className="card flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={it.done}
-                  onChange={() => toggle(it.id)}
-                  className="h-5 w-5"
-                />
-                <div
-                  className={`flex-1 ${
-                    it.done ? 'line-through text-muted' : ''
-                  }`}
-                >
-                  {it.title}
-                </div>
-                <button
-                  className="btn-ghost border"
-                  onClick={() => remove(it.id)}
-                  title="Удалить"
-                >
-                  ✕
-                </button>
-              </div>
-            ))
-          )}
-        </section>
+        {items.length === 0 ? (
+          <div className="card text-center text-muted">
+            No tasks yet — it's time to plan something!
+          </div>
+        ) : (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              // порядок определяется по текущему массиву
+              items={items.map(it => it.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <ul className="space-y-3">
+                {items.map((it) => (
+                  <li key={it.id}>
+                    <SortableItem id={it.id} className="card flex items-center gap-3">
+                      <span
+                        className="inline-flex h-5 w-5 items-center justify-center rounded border text-muted"
+                        title="Drag to move"
+                      >
+                        {/* визуальная «ручка» — просто индикатор, тащить можно за весь блок */}
+                        ⋮⋮
+                      </span>
+
+                      <input
+                        type="checkbox"
+                        checked={it.done}
+                        onChange={() => toggle(it.id)}
+                        className="h-5 w-5"
+                      />
+
+                      <div className={`flex-1 ${it.done ? 'line-through text-muted' : ''}`}>
+                        {it.title}
+                      </div>
+
+                      <button
+                        className="btn-ghost border"
+                        onClick={() => removeItem(it.id)}
+                        title="Delete"
+                        type="button"
+                      >
+                        ✕
+                      </button>
+                    </SortableItem>
+                  </li>
+                ))}
+              </ul>
+            </SortableContext>
+          </DndContext>
+        )}
 
         {items.some((it) => it.done) && (
           <div className="mt-6 flex justify-end">
-            <button className="btn-ghost border" onClick={clearCompleted}>
+            <button className="btn-ghost border" onClick={clearCompleted} type="button">
               Clear completed
             </button>
           </div>
