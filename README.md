@@ -1,6 +1,5 @@
 # ToDoList App
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/0b000000-0000-0000-0000-000000000000/deploy-status)](https://app.netlify.com/sites/nstefanchuk-todolistapp/deploys)
 [![Tech](https://img.shields.io/badge/stack-React%20|%20Vite%20|%20TailwindCSS%20|%20Local%20Storage-informational)]()
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
@@ -22,7 +21,7 @@ https://nstefanchuk-todolistapp.netlify.app/
 ## Screenshots
 
 <p align="center">
-  <img src="./assets/todo-main.png" alt="Main view of the ToDo app" width="720"/>
+  <img src="./src/assets/todo-main.png" alt="Main view of the ToDo app" width="720"/>
 </p>
 
 ## Tech Stack
