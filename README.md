@@ -15,7 +15,7 @@ https://nstefanchuk-todolistapp.netlify.app/
 
 ## Features
 
-- Add, complete, and delete tasks
+- Add, edit, complete, and delete tasks
 - Persist tasks with Local Storage
 - Clear completed in one click
 - Filter by All / Active / Completed
