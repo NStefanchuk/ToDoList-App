@@ -1,6 +1,6 @@
 # ToDoList App
 
-A clean, minimal task manager focused on speed and clarity. Add, complete, and organize tasks with a lightweight UI and instant feedback.
+A sleek and responsive task manager that enables users to add, complete, delete, and filter tasks effortlessly, with data persistence through Local Storage. Built with React and TailwindCSS for speed and simplicity.
 
 ## Tech Stack
 
